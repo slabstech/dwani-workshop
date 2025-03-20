@@ -68,5 +68,12 @@ python src/translate-dhwani-py
 ```
 
 ### Speech to Text / ASR
+```bash
+python src/transcribe-dhwani-py
+```
+
 
 ### Text to Speech
+```bash
+python src/text-to-speech-dhwani-py
+```

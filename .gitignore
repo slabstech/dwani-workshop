@@ -8,6 +8,8 @@ __pycache__/
 # C extensions
 *.so
 node_modules/
+!samples/kannada_sample_1.wav
+!samples/kannada_sample_2.wav
 
 # Distribution / packaging
 .Python

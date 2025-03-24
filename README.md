@@ -49,7 +49,12 @@ python src/text-to-speech-dhwani.py
 ```
 
 ## Video Tutorials
-    
+
+
+- Dhwani - How to use - Dhwani AI - Workshop:  20th March, 2025
+[![Watch the video](https://img.youtube.com/vi/RLIhG1bt8gw/hqdefault.jpg)](https://youtu.be/f5JkJLQJFGA)
+
+
 - Dhwani - How to use - API server
 [![Watch the video](https://img.youtube.com/vi/RLIhG1bt8gw/hqdefault.jpg)](https://youtu.be/RLIhG1bt8gw)
 

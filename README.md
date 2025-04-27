@@ -1,8 +1,8 @@
-# Dhwani - Your Kannada Speaking Voice Buddy
+# dwani.ai - Your Kannada Speaking Voice Buddy
 
 ## Overview
 
-Dhwani is a self-hosted GenAI platform designed to provide voice mode interaction for Kannada and other Indian languages. 
+dwani.ai is a self-hosted GenAI platform designed to provide voice mode interaction for Kannada and other Indian languages. 
 
 
 ## Workshop steps
@@ -40,16 +40,23 @@ python src/chat-dhwani.py
 python src/translate-dhwani.py
 ```
 
+[Translate UX](https://huggingface.co/spaces/slabstech/dwani-ai-translate)
+
 ### Speech to Text / ASR
 ```bash
 python src/transcribe-dhwani.py
 ```
 
+[ASR/ Speech to Text UX](https://huggingface.co/spaces/slabstech/asr-transcription)
 
 ### Text to Speech
 ```bash
 python src/text-to-speech-dhwani.py
 ```
+
+[Text to Speech UX](https://huggingface.co/spaces/slabstech/text-to-speech-synthesis)
+
+
 
 ## Video Tutorials
 

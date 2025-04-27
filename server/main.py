@@ -156,6 +156,7 @@ async def home():
     return RedirectResponse(url="/docs")
 
 from fastapi.responses import FileResponse
+from fastapi.background import BackgroundTasks
 import tempfile
 import os
 
@@ -173,7 +174,8 @@ async def generate_audio(
     request: Request,
     input: str = Query(..., description="Text to convert to speech (max 1000 characters)"),
     response_format: str = Query("mp3", description="Audio format (ignored, defaults to mp3 for external API)"),
-    tts_service: TTSService = Depends(get_tts_service)
+    tts_service: TTSService = Depends(get_tts_service),
+    background_tasks: BackgroundTasks = BackgroundTasks()
 ):
     if not input.strip():
         raise HTTPException(status_code=400, detail="Input cannot be empty")
@@ -188,22 +190,36 @@ async def generate_audio(
     
     payload = {"text": input}
     
+    # Create a temporary file to store the audio
+    temp_file = tempfile.NamedTemporaryFile(delete=False, suffix=".mp3")
+    temp_file_path = temp_file.name
+    
     try:
         response = await tts_service.generate_speech(payload)
         response.raise_for_status()
         
-        # Create a temporary file to store the audio
-        with tempfile.NamedTemporaryFile(delete=False, suffix=".mp3") as temp_file:
+        # Write audio content to the temporary file
+        with open(temp_file_path, "wb") as f:
             for chunk in response.iter_content(chunk_size=8192):
                 if chunk:
-                    temp_file.write(chunk)
-            temp_file_path = temp_file.name
+                    f.write(chunk)
         
         # Prepare headers for the response
         headers = {
             "Content-Disposition": "attachment; filename=\"speech.mp3\"",
             "Cache-Control": "no-cache",
         }
+        
+        # Schedule file cleanup as a background task
+        def cleanup_file(file_path: str):
+            try:
+                if os.path.exists(file_path):
+                    os.unlink(file_path)
+                    logger.info(f"Deleted temporary file: {file_path}")
+            except Exception as e:
+                logger.error(f"Failed to delete temporary file {file_path}: {str(e)}")
+        
+        background_tasks.add_task(cleanup_file, temp_file_path)
         
         # Return the file as a FileResponse
         return FileResponse(
@@ -217,13 +233,8 @@ async def generate_audio(
         logger.error(f"External TTS request failed: {str(e)}")
         raise HTTPException(status_code=502, detail=f"External TTS service error: {str(e)}")
     finally:
-        # Clean up the temporary file if it exists
-        if 'temp_file_path' in locals() and os.path.exists(temp_file_path):
-            try:
-                os.unlink(temp_file_path)
-            except Exception as e:
-                logger.error(f"Failed to delete temporary file: {str(e)}")
-
+        # Close the temporary file to ensure it's fully written
+        temp_file.close()
 
 @app.post("/v1/chat", 
           response_model=ChatResponse,

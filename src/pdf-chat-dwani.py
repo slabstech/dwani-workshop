@@ -1,7 +1,6 @@
 import gradio as gr
 import requests
 from PyPDF2 import PdfReader
-import io
 import os
 
 # Function to validate PDF file
@@ -20,11 +19,11 @@ def is_valid_pdf(file_path):
         return False, f"Invalid PDF: {str(e)}"
 
 # Function to send the POST request to the API
-def extract_text_from_pdf(pdf_file, page_number):
+def extract_text_from_pdf(pdf_file, page_number, src_lang, tgt_lang, prompt):
     if not pdf_file:
         return "Error: No file uploaded. Please upload a PDF file."
 
-    # Validate the PDF using the file path
+    # Validate the PDF
     valid, message = is_valid_pdf(pdf_file)
     if not valid:
         return f"Error: {message}. Please upload a valid PDF file or repair the current one."
@@ -39,9 +38,9 @@ def extract_text_from_pdf(pdf_file, page_number):
         }
         data = {
             "page_number": str(page_number),
-            "src_lang": "eng_Latn",
-            "tgt_lang": "eng_Latn",
-            "prompt": "describe the image"
+            "src_lang": src_lang,
+            "tgt_lang": tgt_lang,
+            "prompt": prompt
         }
 
         # Headers
@@ -68,14 +67,29 @@ with gr.Blocks(title="PDF Content Description") as demo:
     gr.Markdown("# PDF Content Description Extractor")
     gr.Markdown(
         """
-        Upload a PDF file (e.g., Dhwani-AI-Pitch-Europe.pdf) and specify a page number to extract a description of its content.
-        The API will analyze the page and return a textual description, such as details about images, text, or layout.
+        Upload a PDF file (e.g., Dhwani-AI-Pitch-Europe.pdf) and specify parameters to extract a description of its content.
+        The API will analyze the page and return a textual description based on the provided prompt and languages.
         """
     )
     
     # Input components
     pdf_input = gr.File(label="Upload PDF File", file_types=[".pdf"], type="filepath")
     page_number_input = gr.Number(label="Page Number", value=1, precision=0, minimum=1)
+    src_lang_input = gr.Textbox(
+        label="Source Language",
+        value="eng_Latn",
+        placeholder="Enter source language (e.g., eng_Latn)"
+    )
+    tgt_lang_input = gr.Textbox(
+        label="Target Language",
+        value="eng_Latn",
+        placeholder="Enter target language (e.g., eng_Latn)"
+    )
+    prompt_input = gr.Textbox(
+        label="Prompt",
+        value="describe the image",
+        placeholder="Enter prompt (e.g., describe the image)"
+    )
     
     # Submit button
     submit_button = gr.Button("Extract Description")
@@ -90,7 +104,7 @@ with gr.Blocks(title="PDF Content Description") as demo:
     # Connect the button to the function
     submit_button.click(
         fn=extract_text_from_pdf,
-        inputs=[pdf_input, page_number_input],
+        inputs=[pdf_input, page_number_input, src_lang_input, tgt_lang_input, prompt_input],
         outputs=output_text
     )
 

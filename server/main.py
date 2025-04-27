@@ -476,10 +476,19 @@ async def extract_text(
         logger.error(f"Invalid JSON response from external API: {str(e)}")
         raise HTTPException(status_code=500, detail="Invalid response format from external API")
 
+from fastapi import FastAPI, File, HTTPException, Request, UploadFile, Form, Query
+from pydantic import BaseModel, Field
+
+class VisualQueryResponse(BaseModel):
+    answer: str
+
+    class Config:
+        schema_extra = {"example": {"answer": "The image shows a screenshot of a webpage."}}
+
 @app.post("/v1/visual_query", 
           response_model=VisualQueryResponse,
           summary="Visual Query with Image",
-          description="Process a visual query with a text query, image, and language codes provided in a JSON body named 'data'.",
+          description="Process a visual query with a text query, image, and language codes. Provide the query and image as form data, and source/target languages as query parameters.",
           tags=["Chat"],
           responses={
               200: {"description": "Query response", "model": VisualQueryResponse},
@@ -489,38 +498,39 @@ async def extract_text(
           })
 async def visual_query(
     request: Request,
-    data: str = Form(..., description="JSON string containing query, src_lang, and tgt_lang"),
-    file: UploadFile = File(..., description="Image file to analyze")
+    query: str = Form(..., description="Text query to describe or analyze the image (e.g., 'describe the image')"),
+    file: UploadFile = File(..., description="Image file to analyze (e.g., PNG, JPEG)"),
+    src_lang: str = Query(..., description="Source language code (e.g., kan_Knda, en)"),
+    tgt_lang: str = Query(..., description="Target language code (e.g., kan_Knda, en)")
 ):
-    # Parse and validate JSON data
-    try:
-        import json
-        visual_query_request = VisualQueryRequest.parse_raw(data)
-        logger.info(f"Received visual query JSON: {data}")
-    except Exception as e:
-        logger.error(f"Failed to parse JSON data: {str(e)}")
-        raise HTTPException(status_code=422, detail=f"Invalid JSON data: {str(e)}")
-    
-    if not visual_query_request.query.strip():
+    # Validate query
+    if not query.strip():
         raise HTTPException(status_code=400, detail="Query cannot be empty")
-    if len(visual_query_request.query) > 1000:
+    if len(query) > 1000:
         raise HTTPException(status_code=400, detail="Query cannot exceed 1000 characters")
+    
+    # Validate language codes
+    supported_languages = ["kan_Knda", "hin_Deva", "tam_Taml", "en"]  # Add more as needed
+    if src_lang not in supported_languages:
+        raise HTTPException(status_code=400, detail=f"Unsupported source language: {src_lang}. Must be one of {supported_languages}")
+    if tgt_lang not in supported_languages:
+        raise HTTPException(status_code=400, detail=f"Unsupported target language: {tgt_lang}. Must be one of {supported_languages}")
     
     logger.info("Processing visual query request", extra={
         "endpoint": "/v1/visual_query",
-        "query_length": len(visual_query_request.query),
+        "query_length": len(query),
         "file_name": file.filename,
         "client_ip": request.client.host,
-        "src_lang": visual_query_request.src_lang,
-        "tgt_lang": visual_query_request.tgt_lang
+        "src_lang": src_lang,
+        "tgt_lang": tgt_lang
     })
     
-    external_url = f"{os.getenv('EXTERNAL_API_BASE_URL')}/v1/visual_query/?src_lang={visual_query_request.src_lang}&tgt_lang={visual_query_request.tgt_lang}"
+    external_url = f"{os.getenv('EXTERNAL_API_BASE_URL')}/v1/visual_query/?src_lang={src_lang}&tgt_lang={tgt_lang}"
     
     try:
         file_content = await file.read()
         files = {"file": (file.filename, file_content, file.content_type)}
-        data = {"query": visual_query_request.query}
+        data = {"query": query}
         
         response = requests.post(
             external_url,
@@ -550,7 +560,7 @@ async def visual_query(
     except ValueError as e:
         logger.error(f"Invalid JSON response: {str(e)}")
         raise HTTPException(status_code=500, detail="Invalid response format from visual query service")
-
+        
 from enum import Enum
 
 class SupportedLanguage(str, Enum):

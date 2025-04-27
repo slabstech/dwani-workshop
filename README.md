@@ -27,13 +27,33 @@ dwani.ai is a self-hosted GenAI platform designed to provide voice mode interact
     pip install -r requirements.txt
     ```
 
-### Chat / Answer
+### Chat / Text Answer
 ```bash
 python src/chat-dhwani.py
 ```
-
-
 [Chat UX ](https://huggingface.co/spaces/slabstech/dwani-ai-chat)
+
+### Image Query
+```bash
+python src/image-query.py
+```
+[Image Query UX ](https://huggingface.co/spaces/slabstech/dwani-ai-image-query)
+
+
+### PDF Chat
+```bash
+python src/pdf-chat-dhwani.py
+```
+[PDF Chat UX ](https://huggingface.co/spaces/slabstech/dwani-ai-pdf-chat)
+
+
+### Text to Speech
+```bash
+python src/text-to-speech-dhwani.py
+```
+
+[Text to Speech UX](https://huggingface.co/spaces/slabstech/text-to-speech-synthesis)
+
 
 ### Translate
 ```bash

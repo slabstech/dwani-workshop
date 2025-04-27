@@ -6,3 +6,4 @@ slowapi
 requests
 python-multipart
 pillow
+pypdf2

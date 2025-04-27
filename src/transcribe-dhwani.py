@@ -3,8 +3,8 @@ import requests
 
 # List of supported languages
 LANGUAGES = [
-"malayalam"
-"tamil",
+    "malayalam",
+    "tamil",
     "telugu",
     "hindi", 
     "kannada"
@@ -14,12 +14,11 @@ LANGUAGES = [
 def get_lang_name(lang_string):
     return lang_string.split("(")[0].strip().lower()
 
-def transcribe_api(audio_file, language, token):
-    url = f"https://slabstech-dhwani-server.hf.space/v1/transcribe/?language={get_lang_name(language)}"
+def transcribe_api(audio_file, language):
+    url = f"https://slabstech-dhwani-server-workshop.hf.space/v1/transcribe/?language={get_lang_name(language)}"
     
     headers = {
         "accept": "application/json",
-        "Authorization": f"Bearer {token}",
     }
     
     # Open the file in binary mode
@@ -43,19 +42,13 @@ with gr.Blocks(title="Speech to Text API Interface") as demo:
             # Input components
             audio_input = gr.Audio(
                 label="Audio File",
-                type="filepath",  # Changed from "file" to "filepath"
+                type="filepath",
                 sources=["upload"]
             )
             language_input = gr.Dropdown(
                 label="Language",
                 choices=LANGUAGES,
                 value="kannada"
-            )
-            token_input = gr.Textbox(
-                label="Bearer Token",
-                placeholder="Enter your authorization token",
-                type="password",
-                value=""
             )
             
             submit_btn = gr.Button("Transcribe")
@@ -67,7 +60,7 @@ with gr.Blocks(title="Speech to Text API Interface") as demo:
     # Connect the button click to the API function
     submit_btn.click(
         fn=transcribe_api,
-        inputs=[audio_input, language_input, token_input],
+        inputs=[audio_input, language_input],
         outputs=output
     )
 

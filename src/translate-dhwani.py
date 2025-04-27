@@ -19,12 +19,11 @@ LANGUAGES = [
 def get_lang_code(lang_string):
     return lang_string.split("(")[-1].rstrip(")")
 
-def translate_api(sentences, src_lang, tgt_lang, token):
-    url = "https://slabstech-dhwani-server.hf.space/v1/translate"
+def translate_api(sentences, src_lang, tgt_lang):
+    url = "https://slabstech-dhwani-server-workshop.hf.space/v1/translate"
     
     headers = {
         "accept": "application/json",
-        "Authorization": f"Bearer {token}",
         "Content-Type": "application/json"
     }
     
@@ -47,12 +46,15 @@ def translate_api(sentences, src_lang, tgt_lang, token):
         response = requests.post(url, headers=headers, json=payload)
         response.raise_for_status()
         return response.json()
+    except requests.exceptions.HTTPError as e:
+        return {"error": f"HTTP Error: {str(e)}"}
     except requests.exceptions.RequestException as e:
-        return f"Error: {str(e)}"
+        return {"error": f"Request Error: {str(e)}"}
 
 # Create Gradio interface
 with gr.Blocks(title="Translation API Interface") as demo:
     gr.Markdown("# Translation API Interface")
+    gr.Markdown("Enter sentences and select languages to translate.")
     
     with gr.Row():
         with gr.Column():
@@ -61,23 +63,17 @@ with gr.Blocks(title="Translation API Interface") as demo:
                 label="Sentences",
                 placeholder='Enter sentences as JSON array or single sentence (e.g., ["Hello", "Good morning"] or "Hello")',
                 lines=3,
-                value='["ನಮಸ್ಕಾರ, ಹೇಗಿದ್ದೀರಾ?", "ಶುಭೋದಯ!"]'
+                value='["Hi"]'
             )
             src_lang_input = gr.Dropdown(
                 label="Source Language",
                 choices=LANGUAGES,
-                value="Kannada (kan_Knda)"
+                value="English (eng_Latn)"
             )
             tgt_lang_input = gr.Dropdown(
                 label="Target Language",
                 choices=LANGUAGES,
-                value="English (eng_Latn)"
-            )
-            token_input = gr.Textbox(
-                label="Bearer Token",
-                placeholder="Enter your authorization token",
-                type="password",
-                value=""
+                value="Kannada (kan_Knda)"
             )
             
             submit_btn = gr.Button("Translate")
@@ -89,9 +85,10 @@ with gr.Blocks(title="Translation API Interface") as demo:
     # Connect the button click to the API function
     submit_btn.click(
         fn=translate_api,
-        inputs=[sentences_input, src_lang_input, tgt_lang_input, token_input],
+        inputs=[sentences_input, src_lang_input, tgt_lang_input],
         outputs=output
     )
 
 # Launch the interface
-demo.launch()
+if __name__ == "__main__":
+    demo.launch()

@@ -1,18 +1,18 @@
 import gradio as gr
 import requests
 
-def chat_api(prompt, language, token):
-    url = "https://slabstech-dhwani-server.hf.space/v1/chat"
+def chat_api(prompt, language, tgt_language):
+    url = "https://slabstech-dhwani-server-workshop.hf.space/v1/chat"
     
     headers = {
         "accept": "application/json",
-        "Authorization": f"Bearer {token}",
         "Content-Type": "application/json"
     }
     
     payload = {
         "prompt": prompt,
-        "src_lang": language
+        "src_lang": language,
+        "tgt_lang": tgt_language
     }
     
     try:
@@ -31,20 +31,17 @@ with gr.Blocks(title="Chat API Interface") as demo:
             # Input components
             prompt_input = gr.Textbox(
                 label="Prompt",
-                placeholder="Enter your prompt here (e.g., 'hello')"
+                placeholder="Enter your prompt here (e.g., 'hi')"
             )
             language_input = gr.Textbox(
                 label="Source Language",
-                placeholder="Enter language code (e.g., 'kan_Knda')",
-                value="kan_Knda"
+                placeholder="Enter source language code (e.g., 'eng_Latn')",
+                value="eng_Latn"
             )
-            token_input = gr.Textbox(
-                label="Bearer Token",
-                placeholder="Enter your authorization token",
-                type="password",
-                #value="eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiJkaHdhbmktd29ya3Nob3BAZXhhbXBsZS5jb20iLCJleHAiOjE3NDI0NTkwNzEuMzk4NjF9.zk3WWuoTjYGbAzDSIOXhkOiiG6p-UkqxKapq8T4JlKs"
-                value=""
-
+            tgt_language_input = gr.Textbox(
+                label="Target Language",
+                placeholder="Enter target language code (e.g., 'eng_Latn')",
+                value="eng_Latn"
             )
             
             submit_btn = gr.Button("Submit")
@@ -56,7 +53,7 @@ with gr.Blocks(title="Chat API Interface") as demo:
     # Connect the button click to the API function
     submit_btn.click(
         fn=chat_api,
-        inputs=[prompt_input, language_input, token_input],
+        inputs=[prompt_input, language_input, tgt_language_input],
         outputs=output
     )
 

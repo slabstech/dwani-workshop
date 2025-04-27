@@ -32,6 +32,9 @@ Dhwani is a self-hosted GenAI platform designed to provide voice mode interactio
 python src/chat-dhwani.py
 ```
 
+
+[Chat UX ](https://huggingface.co/spaces/slabstech/dwani-ai-chat)
+
 ### Translate
 ```bash
 python src/translate-dhwani.py
@@ -54,9 +57,6 @@ python src/text-to-speech-dhwani.py
 - Dhwani - How to use - Dhwani AI - Workshop:  20th March, 2025
 [![Watch the video](https://img.youtube.com/vi/RLIhG1bt8gw/hqdefault.jpg)](https://youtu.be/f5JkJLQJFGA)
 
-
-- Dhwani - How to use - API server
-[![Watch the video](https://img.youtube.com/vi/RLIhG1bt8gw/hqdefault.jpg)](https://youtu.be/RLIhG1bt8gw)
 
 - Dhwani - Intoduction to Project
 [![Watch the video](https://img.youtube.com/vi/kqZZZjbeNVk/hqdefault.jpg)](https://youtu.be/kqZZZjbeNVk)

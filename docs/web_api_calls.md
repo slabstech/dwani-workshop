@@ -94,11 +94,26 @@ curl -X 'POST' \
 
 - Speech Synthesis
 
+
 curl -X 'POST' \
-  'http://209.20.158.215:7862/v1/audio/speech' \
+  'https://slabstech-dhwani-server-workshop.hf.space/v1/audio/speech' \
   -H 'accept: */*' \
   -H 'Content-Type: application/json' \
   -d '{
   "text": "ಕರ್ನಾಟಕದ ರಾಜಧಾನಿ ಬೆಂಗಳೂರು. "
 }'
 
+
+Visual Query
+
+curl -X 'POST' \
+  'https://slabstech-dhwani-server-workshop.hf.space/v1/visual_query?src_lang=eng_Latn&tgt_lang=kan_Knda' \
+  -H 'accept: application/json' \
+  -H 'Content-Type: multipart/form-data' \
+  -F 'query=describe the image' \
+  -F 'file=@Screenshot from 2025-04-26 21-41-12.png;type=image/png'
+
+
+{
+  "answer": "ಚಿತ್ರದ ವಿವರಣೆ ಹೀಗಿದೆಃ ಈ ಚಿತ್ರವು ಕಂದುಬಣ್ಣದ ಮತ್ತು ಬಿಳಿ ಕೋಟ್ ಹೊಂದಿರುವ ಸಂತೋಷದ, ಮಧ್ಯಮ ಗಾತ್ರದ ನಾಯಿಯ ಡಿಜಿಟಲ್ ವರ್ಣಚಿತ್ರವಾಗಿದೆ, ಕಾಲರ್ ಧರಿಸಿ, ಮೋಡ ಕವಿದ ಆಕಾಶದ ಕೆಳಗೆ ಹುಲ್ಲುಗಾವಲು ಮೈದಾನದಲ್ಲಿ ನಿಂತಿದೆ. "
+}

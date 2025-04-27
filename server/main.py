@@ -155,12 +155,16 @@ async def health_check():
 async def home():
     return RedirectResponse(url="/docs")
 
+from fastapi.responses import FileResponse
+import tempfile
+import os
+
 @app.post("/v1/audio/speech",
           summary="Generate Speech from Text",
-          description="Convert text to speech using an external TTS service.",
+          description="Convert text to speech using an external TTS service and return as a downloadable audio file.",
           tags=["Audio"],
           responses={
-              200: {"description": "Audio stream", "content": {"audio/mp3": {"example": "Binary audio data"}}},
+              200: {"description": "Audio file", "content": {"audio/mp3": {"example": "Binary audio data"}}},
               400: {"description": "Invalid or empty input"},
               502: {"description": "External TTS service unavailable"},
               504: {"description": "TTS service timeout"}
@@ -187,21 +191,39 @@ async def generate_audio(
     try:
         response = await tts_service.generate_speech(payload)
         response.raise_for_status()
+        
+        # Create a temporary file to store the audio
+        with tempfile.NamedTemporaryFile(delete=False, suffix=".mp3") as temp_file:
+            for chunk in response.iter_content(chunk_size=8192):
+                if chunk:
+                    temp_file.write(chunk)
+            temp_file_path = temp_file.name
+        
+        # Prepare headers for the response
+        headers = {
+            "Content-Disposition": "attachment; filename=\"speech.mp3\"",
+            "Cache-Control": "no-cache",
+        }
+        
+        # Return the file as a FileResponse
+        return FileResponse(
+            path=temp_file_path,
+            filename="speech.mp3",
+            media_type="audio/mp3",
+            headers=headers
+        )
+    
     except requests.HTTPError as e:
         logger.error(f"External TTS request failed: {str(e)}")
         raise HTTPException(status_code=502, detail=f"External TTS service error: {str(e)}")
-    
-    headers = {
-        "Content-Disposition": "inline; filename=\"speech.mp3\"",
-        "Cache-Control": "no-cache",
-        "Content-Type": "audio/mp3"
-    }
-    
-    return StreamingResponse(
-        response.iter_content(chunk_size=8192),
-        media_type="audio/mp3",
-        headers=headers
-    )
+    finally:
+        # Clean up the temporary file if it exists
+        if 'temp_file_path' in locals() and os.path.exists(temp_file_path):
+            try:
+                os.unlink(temp_file_path)
+            except Exception as e:
+                logger.error(f"Failed to delete temporary file: {str(e)}")
+
 
 @app.post("/v1/chat", 
           response_model=ChatResponse,

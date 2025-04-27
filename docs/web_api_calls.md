@@ -89,3 +89,16 @@ curl -X 'POST' \
   -H 'accept: application/json' \
   -H 'Content-Type: multipart/form-data' \
   -F 'file=@kannada_sample_1.wav;type=audio/x-wav' -o speech_speech_output.wav
+
+
+
+- Speech Synthesis
+
+curl -X 'POST' \
+  'http://209.20.158.215:7862/v1/audio/speech' \
+  -H 'accept: */*' \
+  -H 'Content-Type: application/json' \
+  -d '{
+  "text": "ಕರ್ನಾಟಕದ ರಾಜಧಾನಿ ಬೆಂಗಳೂರು. "
+}'
+

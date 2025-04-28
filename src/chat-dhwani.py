@@ -1,9 +1,21 @@
 import gradio as gr
 import requests
 
-def chat_api(prompt, language, tgt_language):
-    url = "https://slabstech-dhwani-server-workshop.hf.space/v1/chat"
-    
+def chat_api(prompt, language, tgt_language):  
+
+    import os
+
+    # Get the base URL (IP or domain) from environment variable
+    base_url = os.getenv("DWANI_AI_API_BASE_URL")
+
+    if not base_url:
+        raise ValueError("DWANI_AI_API_BASE_URL environment variable is not set")
+
+    # Define the endpoint path
+    endpoint = "/v1/chat"
+
+        # Construct the full API URL
+    url = f"{base_url.rstrip('/')}{endpoint}"
     headers = {
         "accept": "application/json",
         "Content-Type": "application/json"

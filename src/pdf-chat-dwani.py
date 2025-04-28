@@ -28,8 +28,19 @@ def extract_text_from_pdf(pdf_file, page_number, src_lang, tgt_lang, prompt):
     if not valid:
         return f"Error: {message}. Please upload a valid PDF file or repair the current one."
 
-    # API endpoint
-    url = "http://209.20.158.215:7861/extract-text-eng/"
+    import os
+
+    # Get the base URL (IP or domain) from environment variable
+    base_url = os.getenv("DWANI_AI_API_BASE_URL")
+
+    if not base_url:
+        raise ValueError("DWANI_AI_API_BASE_URL environment variable is not set")
+
+    # Define the endpoint path
+    endpoint = "/extract-text-eng/"
+
+    # Construct the full API URL
+    url = f"{base_url.rstrip('/')}{endpoint}"
 
     # Prepare the payload
     with open(pdf_file, "rb") as f:

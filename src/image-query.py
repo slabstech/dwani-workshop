@@ -5,7 +5,20 @@ import io
 
 def visual_query(image, src_lang, tgt_lang, prompt):
     # API endpoint
-    url = "https://slabstech-dhwani-server-workshop.hf.space/v1/visual_query"
+
+    import os
+
+    # Get the base URL (IP or domain) from environment variable
+    base_url = os.getenv("DWANI_AI_API_BASE_URL")
+
+    if not base_url:
+        raise ValueError("DWANI_AI_API_BASE_URL environment variable is not set")
+
+    # Define the endpoint path
+    endpoint = "/v1/visual_query"
+
+    # Construct the full API URL
+    url = f"{base_url.rstrip('/')}{endpoint}"
 
     # Prepare the query parameters
     params = {

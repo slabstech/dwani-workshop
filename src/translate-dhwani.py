@@ -20,8 +20,22 @@ def get_lang_code(lang_string):
     return lang_string.split("(")[-1].rstrip(")")
 
 def translate_api(sentences, src_lang, tgt_lang):
-    url = "https://slabstech-dhwani-server-workshop.hf.space/v1/translate"
-    
+
+    import os
+
+    # Get the base URL (IP or domain) from environment variable
+    base_url = os.getenv("DWANI_AI_API_BASE_URL")
+
+    if not base_url:
+        raise ValueError("DWANI_AI_API_BASE_URL environment variable is not set")
+
+    # Define the endpoint path
+    endpoint = "/v1/translate"
+
+        # Construct the full API URL
+    url = f"{base_url.rstrip('/')}{endpoint}"
+
+
     headers = {
         "accept": "application/json",
         "Content-Type": "application/json"

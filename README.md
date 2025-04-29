@@ -27,6 +27,20 @@ dwani.ai is a self-hosted GenAI platform designed to provide voice mode interact
     pip install -r requirements.txt
     ```
 
+- To Run the program
+  - DWANI_AI_API_BASE_URL environement variable has to be set
+    - export DWANI_AI_API_BASE_URL=http://example.com:example-port
+  - Please email us to get the IP for dwani.ai - workshop inference server
+
+### dwani.ai - Voice assistant
+```bash
+python src/dwani-voice-assistant.py
+```
+
+[dwani.ai - voice assistant](https://huggingface.co/spaces/slabstech/text-to-speech-synthesis)
+
+
+
 ### Chat / Text Answer
 ```bash
 python src/chat-dhwani.py

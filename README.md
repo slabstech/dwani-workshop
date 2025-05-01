@@ -32,6 +32,10 @@ dwani.ai is a self-hosted GenAI platform designed to provide voice mode interact
     - export DWANI_AI_API_BASE_URL=http://example.com:example-port
   - Please email us to get the IP for dwani.ai - workshop inference server
 
+
+nohup python src/server/main.py --port 7860 > server.log 2>&1 &
+
+
 ### dwani.ai - Voice assistant
 ```bash
 python src/dwani-voice-assistant.py

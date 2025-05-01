@@ -510,7 +510,7 @@ async def visual_query(
         raise HTTPException(status_code=400, detail="Query cannot exceed 1000 characters")
     
     # Validate language codes
-    supported_languages = ["kan_Knda", "hin_Deva", "tam_Taml", "en"]  # Add more as needed
+    supported_languages = ["kan_Knda", "hin_Deva", "tam_Taml", "eng_Latn"]  # Add more as needed
     if src_lang not in supported_languages:
         raise HTTPException(status_code=400, detail=f"Unsupported source language: {src_lang}. Must be one of {supported_languages}")
     if tgt_lang not in supported_languages:
@@ -560,7 +560,94 @@ async def visual_query(
     except ValueError as e:
         logger.error(f"Invalid JSON response: {str(e)}")
         raise HTTPException(status_code=500, detail="Invalid response format from visual query service")
+
+
+from fastapi import FastAPI, File, HTTPException, Request, UploadFile, Form, Query
+from pydantic import BaseModel, Field
+
+class DocumentQueryResponse(BaseModel):
+    answer: str
+
+    class Config:
+        schema_extra = {"example": {"answer": "The image shows a screenshot of a webpage."}}
+
+@app.post("/v1/document_query", 
+          response_model=DocumentQueryResponse,
+          summary="Docuemnt Query with Image",
+          description="Process a Document query with a text query, image, and language codes. Provide the query and image as form data, and source/target languages as query parameters.",
+          tags=["Chat"],
+          responses={
+              200: {"description": "Query response", "model": DocumentQueryResponse},
+              400: {"description": "Invalid query or language codes"},
+              422: {"description": "Validation error in request body"},
+              504: {"description": "Visual query service timeout"}
+          })
+async def document_query(
+    request: Request,
+    query: str = Form(..., description="Text query to describe or analyze the image (e.g., 'describe the image')"),
+    file: UploadFile = File(..., description="Image file to analyze (e.g., PNG, JPEG)"),
+    src_lang: str = Query(..., description="Source language code (e.g., kan_Knda, en)"),
+    tgt_lang: str = Query(..., description="Target language code (e.g., kan_Knda, en)")
+):
+    # Validate query
+    if not query.strip():
+        raise HTTPException(status_code=400, detail="Query cannot be empty")
+    if len(query) > 1000:
+        raise HTTPException(status_code=400, detail="Query cannot exceed 1000 characters")
+    
+    # Validate language codes
+    supported_languages = ["kan_Knda", "hin_Deva", "tam_Taml", "eng_Latn"]  # Add more as needed
+    if src_lang not in supported_languages:
+        raise HTTPException(status_code=400, detail=f"Unsupported source language: {src_lang}. Must be one of {supported_languages}")
+    if tgt_lang not in supported_languages:
+        raise HTTPException(status_code=400, detail=f"Unsupported target language: {tgt_lang}. Must be one of {supported_languages}")
+    
+    logger.info("Processing document query request", extra={
+        "endpoint": "/v1/document_query",
+        "query_length": len(query),
+        "file_name": file.filename,
+        "client_ip": request.client.host,
+        "src_lang": src_lang,
+        "tgt_lang": tgt_lang
+    })
+    
+    external_url = f"{os.getenv('EXTERNAL_API_BASE_URL')}/v1/document_query/?src_lang={src_lang}&tgt_lang={tgt_lang}"
+    
+    try:
+        file_content = await file.read()
+        files = {"file": (file.filename, file_content, file.content_type)}
+        data = {"query": query}
         
+        response = requests.post(
+            external_url,
+            files=files,
+            data=data,
+            headers={"accept": "application/json"},
+            timeout=60
+        )
+        response.raise_for_status()
+        
+        response_data = response.json()
+        answer = response_data.get("answer", "")
+        
+        if not answer:
+            logger.warning(f"Empty answer received from external API: {response_data}")
+            raise HTTPException(status_code=500, detail="No answer provided by visual query service")
+        
+        logger.info(f"document_query query successful: {answer}")
+        return VisualQueryResponse(answer=answer)
+    
+    except requests.Timeout:
+        logger.error("document_query query request timed out")
+        raise HTTPException(status_code=504, detail="document_query query service timeout")
+    except requests.RequestException as e:
+        logger.error(f"Error during document_query query: {str(e)}")
+        raise HTTPException(status_code=500, detail=f"document_query query failed: {str(e)}")
+    except ValueError as e:
+        logger.error(f"Invalid JSON response: {str(e)}")
+        raise HTTPException(status_code=500, detail="Invalid response format from document_query query service")
+
+
 from enum import Enum
 
 class SupportedLanguage(str, Enum):
@@ -627,12 +714,271 @@ async def speech_to_speech(
     except requests.RequestException as e:
         logger.error(f"External speech-to-speech API error: {str(e)}")
         raise HTTPException(status_code=500, detail=f"External API error: {str(e)}")
+    
+from fastapi import FastAPI, File, HTTPException, Request, UploadFile, Form, Query
+from pydantic import BaseModel, Field
+from typing import List
+
+# Request/Response Models for Document Process Endpoint
+class DocumentProcessPage(BaseModel):
+    page_number: int = Field(..., description="Page number of the extracted text")
+    page_text: str = Field(..., description="Extracted text from the page")
+
+    class Config:
+        schema_extra = {
+            "example": {
+                "page_number": 1,
+                "page_text": "Okay, here's the plain text representation of the document..."
+            }
+        }
+
+class DocumentProcessResponse(BaseModel):
+    pages: List[DocumentProcessPage] = Field(..., description="List of pages with extracted text")
+
+    class Config:
+        schema_extra = {
+            "example": {
+                "pages": [
+                    {
+                        "page_number": 1,
+                        "page_text": "Okay, here's the plain text representation of the document...\n\n**DB Online-Ticket**\n..."
+                    }
+                ]
+            }
+        }
+
+@app.post("/v1/document_process",
+          response_model=DocumentProcessResponse,
+          summary="Extract Text from All Pages of a PDF",
+          description="Extract plain text from all pages of a PDF file using an external API, based on the provided prompt and language codes.",
+          tags=["PDF"],
+          responses={
+              200: {"description": "Extracted text from all pages", "model": DocumentProcessResponse},
+              400: {"description": "Invalid PDF, prompt, or language codes"},
+              500: {"description": "External API error"},
+              504: {"description": "External API timeout"}
+          })
+async def document_process(
+    request: Request,
+    file: UploadFile = File(..., description="PDF file to extract text from"),
+    src_lang: str = Form(..., description="Source language code (e.g., eng_Latn)"),
+    tgt_lang: str = Form(..., description="Target language code (e.g., eng_Latn)"),
+    prompt: str = Form(..., description="Prompt for text extraction (e.g., 'Return the plain text representation of this document as if you were reading it naturally')")
+):
+    # Validate inputs
+    if not prompt.strip():
+        raise HTTPException(status_code=400, detail="Prompt cannot be empty")
+    if len(prompt) > 1000:
+        raise HTTPException(status_code=400, detail="Prompt cannot exceed 1000 characters")
+
+    # Validate language codes
+    supported_languages = [
+        "eng_Latn", "hin_Deva", "kan_Knda", "tam_Taml", "mal_Mlym", "tel_Telu",
+        "deu_Latn", "fra_Latn", "nld_Latn", "spa_Latn", "ita_Latn", "por_Latn",
+        "rus_Cyrl", "pol_Latn"
+    ]
+    if src_lang not in supported_languages:
+        raise HTTPException(status_code=400, detail=f"Unsupported source language: {src_lang}. Must be one of {supported_languages}")
+    if tgt_lang not in supported_languages:
+        raise HTTPException(status_code=400, detail=f"Unsupported target language: {tgt_lang}. Must be one of {supported_languages}")
+
+    # Validate file
+    if not file.filename.lower().endswith('.pdf'):
+        raise HTTPException(status_code=400, detail="File must be a PDF")
+
+    logger.info("Processing document process request", extra={
+        "endpoint": "/v1/document_process",
+        "file_name": file.filename,
+        "prompt_length": len(prompt),
+        "src_lang": src_lang,
+        "tgt_lang": tgt_lang,
+        "client_ip": request.client.host
+    })
+
+
+    external_url = f"{os.getenv('EXTERNAL_PDF_API_BASE_URL')}/extract-text-all-pages-batch/"
+    start_time = time()
+
+    try:
+        file_content = await file.read()
+        files = {"file": (file.filename, file_content, "application/pdf")}
+        data = {"src_lang": src_lang, "tgt_lang": tgt_lang, "prompt": prompt}
+
+        response = requests.post(
+            external_url,
+            files=files,
+            data=data,
+            headers={"accept": "application/json"},
+            timeout=60
+        )
+        response.raise_for_status()
+
+        response_data = response.json()
+        pages = response_data.get("pages", [])
+
+        if not pages:
+            logger.warning("No pages found in external API response")
+            return DocumentProcessResponse(pages=[])
+
+        # Validate and format response
+        formatted_pages = [
+            DocumentProcessPage(
+                page_number=page.get("page_number"),
+                page_text=page.get("page_text", "")
+            ) for page in pages
+        ]
+
+        logger.info(f"Document process completed in {time() - start_time:.2f} seconds, pages extracted: {len(formatted_pages)}")
+        return DocumentProcessResponse(pages=formatted_pages)
+
+    except requests.Timeout:
+        logger.error("External document process API timed out")
+        raise HTTPException(status_code=504, detail="External API timeout")
+    except requests.RequestException as e:
+        logger.error(f"External document process API error: {str(e)}")
+        raise HTTPException(status_code=500, detail=f"External API error: {str(e)}")
+    except ValueError as e:
+        logger.error(f"Invalid JSON response from external API: {str(e)}")
+        raise HTTPException(status_code=500, detail="Invalid response format from external API")
+    
+from fastapi import FastAPI, File, HTTPException, Request, UploadFile, Form, Query
+from pydantic import BaseModel, Field
+from typing import List
+
+# Request/Response Models for Document Summary Endpoint
+class DocumentSummaryPage(BaseModel):
+    page_number: int = Field(..., description="Page number of the extracted text")
+    page_text: str = Field(..., description="Extracted text from the page")
+
+    class Config:
+        schema_extra = {
+            "example": {
+                "page_number": 1,
+                "page_text": "Okay, here's the plain text representation of the document...\n\nDB Online-Ticket\n..."
+            }
+        }
+
+class DocumentSummaryResponse(BaseModel):
+    pages: List[DocumentSummaryPage] = Field(..., description="List of pages with extracted text")
+    summary: str = Field(..., description="Summary of the document based on the provided prompt")
+
+    class Config:
+        schema_extra = {
+            "example": {
+                "pages": [
+                    {
+                        "page_number": 1,
+                        "page_text": "Okay, here's the plain text representation of the document...\n\nDB Online-Ticket\n..."
+                    }
+                ],
+                "summary": "This document is a digital train ticket for ICE 1126, traveling from Köln Hbf to Berlin Hbf on May second, two thousand twenty-four..."
+            }
+        }
+
+@app.post("/v1/document_summary",
+          response_model=DocumentSummaryResponse,
+          summary="Summarize All Pages of a PDF",
+          description="Summarize the content of all pages of a PDF file using an external API, based on the provided prompt and language codes.",
+          tags=["PDF"],
+          responses={
+              200: {"description": "Extracted text and summary of all pages", "model": DocumentSummaryResponse},
+              400: {"description": "Invalid PDF, prompt, or language codes"},
+              500: {"description": "External API error"},
+              504: {"description": "External API timeout"}
+          })
+async def document_summary(
+    request: Request,
+    file: UploadFile = File(..., description="PDF file to summarize"),
+    src_lang: str = Form(..., description="Source language code (e.g., eng_Latn)"),
+    tgt_lang: str = Form(..., description="Target language code (e.g., eng_Latn)"),
+    prompt: str = Form(..., description="Prompt for summarization (e.g., 'Summarize the document in 3 sentences.')")
+):
+    # Validate inputs
+    if not prompt.strip():
+        raise HTTPException(status_code=400, detail="Prompt cannot be empty")
+    if len(prompt) > 1000:
+        raise HTTPException(status_code=400, detail="Prompt cannot exceed 1000 characters")
+
+    # Validate language codes
+    supported_languages = [
+        "eng_Latn", "hin_Deva", "kan_Knda", "tam_Taml", "mal_Mlym", "tel_Telu",
+        "deu_Latn", "fra_Latn", "nld_Latn", "spa_Latn", "ita_Latn", "por_Latn",
+        "rus_Cyrl", "pol_Latn"
+    ]
+    if src_lang not in supported_languages:
+        raise HTTPException(status_code=400, detail=f"Unsupported source language: {src_lang}. Must be one of {supported_languages}")
+    if tgt_lang not in supported_languages:
+        raise HTTPException(status_code=400, detail=f"Unsupported target language: {tgt_lang}. Must be one of {supported_languages}")
+
+    # Validate file
+    if not file.filename.lower().endswith('.pdf'):
+        raise HTTPException(status_code=400, detail="File must be a PDF")
+
+    logger.info("Processing document summary request", extra={
+        "endpoint": "/v1/document_summary",
+        "file_name": file.filename,
+        "prompt_length": len(prompt),
+        "src_lang": src_lang,
+        "tgt_lang": tgt_lang,
+        "client_ip": request.client.host
+    })
+
+    external_url = f"{os.getenv('EXTERNAL_PDF_API_BASE_URL')}/summarize-all-pages/"
+    start_time = time()
+
+    try:
+        file_content = await file.read()
+        files = {"file": (file.filename, file_content, "application/pdf")}
+        data = {"src_lang": src_lang, "tgt_lang": tgt_lang, "prompt": prompt}
+
+        response = requests.post(
+            external_url,
+            files=files,
+            data=data,
+            headers={"accept": "application/json"},
+            timeout=60
+        )
+        response.raise_for_status()
+
+        response_data = response.json()
+        pages = response_data.get("pages", [])
+        summary = response_data.get("summary", "")
+
+        if not pages or not summary:
+            logger.warning(f"Incomplete response from external API: pages={len(pages)}, summary={'present' if summary else 'missing'}")
+            return DocumentSummaryResponse(pages=[], summary=summary or "No summary provided by the external API")
+
+        # Validate and format response
+        formatted_pages = [
+            DocumentSummaryPage(
+                page_number=page.get("page_number"),
+                page_text=page.get("page_text", "")
+            ) for page in pages
+        ]
+
+        logger.info(f"Document summary completed in {time() - start_time:.2f} seconds, pages extracted: {len(formatted_pages)}, summary length: {len(summary)}")
+        return DocumentSummaryResponse(pages=formatted_pages, summary=summary)
+
+    except requests.Timeout:
+        logger.error("External document summary API timed out")
+        raise HTTPException(status_code=504, detail="External API timeout")
+    except requests.RequestException as e:
+        logger.error(f"External document summary API error: {str(e)}")
+        raise HTTPException(status_code=500, detail=f"External API error: {str(e)}")
+    except ValueError as e:
+        logger.error(f"Invalid JSON response from external API: {str(e)}")
+        raise HTTPException(status_code=500, detail="Invalid response format from external API")
+    
 
 if __name__ == "__main__":
     # Ensure EXTERNAL_API_BASE_URL is set
     external_api_base_url = os.getenv("EXTERNAL_API_BASE_URL")
     if not external_api_base_url:
         raise ValueError("Environment variable EXTERNAL_API_BASE_URL must be set")
+    
+    external_pdf_api_base_url = os.getenv("EXTERNAL_PDF_API_BASE_URL")
+    if not external_pdf_api_base_url:
+        raise ValueError("Environment variable EXTERNAL_PDF_API_BASE_URL must be set")
     
     parser = argparse.ArgumentParser(description="Run the FastAPI server.")
     parser.add_argument("--port", type=int, default=8000, help="Port to run the server on.")

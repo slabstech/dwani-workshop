@@ -970,6 +970,102 @@ async def document_summary(
         raise HTTPException(status_code=500, detail="Invalid response format from external API")
     
 
+@app.post("/v1/document_summary_v0",
+          response_model=DocumentSummaryResponse,
+          summary="Summarize All Pages of a PDF",
+          description="Summarize the content of all pages of a PDF file using an external API, based on the provided prompt and language codes.",
+          tags=["PDF"],
+          responses={
+              200: {"description": "Extracted text and summary of all pages", "model": DocumentSummaryResponse},
+              400: {"description": "Invalid PDF, prompt, or language codes"},
+              500: {"description": "External API error"},
+              504: {"description": "External API timeout"}
+          })
+async def document_summary_v0(
+    request: Request,
+    file: UploadFile = File(..., description="PDF file to summarize"),
+    src_lang: str = Form(..., description="Source language code (e.g., eng_Latn)"),
+    tgt_lang: str = Form(..., description="Target language code (e.g., eng_Latn)"),
+    prompt: str = Form(..., description="Prompt for summarization (e.g., 'Summarize the document in 3 sentences.')")
+):
+    # Validate inputs
+    if not prompt.strip():
+        raise HTTPException(status_code=400, detail="Prompt cannot be empty")
+    if len(prompt) > 1000:
+        raise HTTPException(status_code=400, detail="Prompt cannot exceed 1000 characters")
+
+    # Validate language codes
+    supported_languages = [
+        "eng_Latn", "hin_Deva", "kan_Knda", "tam_Taml", "mal_Mlym", "tel_Telu",
+        "deu_Latn", "fra_Latn", "nld_Latn", "spa_Latn", "ita_Latn", "por_Latn",
+        "rus_Cyrl", "pol_Latn"
+    ]
+    if src_lang not in supported_languages:
+        raise HTTPException(status_code=400, detail=f"Unsupported source language: {src_lang}. Must be one of {supported_languages}")
+    if tgt_lang not in supported_languages:
+        raise HTTPException(status_code=400, detail=f"Unsupported target language: {tgt_lang}. Must be one of {supported_languages}")
+
+    # Validate file
+    if not file.filename.lower().endswith('.pdf'):
+        raise HTTPException(status_code=400, detail="File must be a PDF")
+
+    logger.info("Processing document summary request", extra={
+        "endpoint": "/v1/document_summary_v0",
+        "file_name": file.filename,
+        "prompt_length": len(prompt),
+        "src_lang": src_lang,
+        "tgt_lang": tgt_lang,
+        "client_ip": request.client.host
+    })
+
+    external_url = f"{os.getenv('EXTERNAL_PDF_API_BASE_URL')}/summarize-all-pages_v0/"
+    start_time = time()
+
+    try:
+        file_content = await file.read()
+        files = {"file": (file.filename, file_content, "application/pdf")}
+        data = {"src_lang": src_lang, "tgt_lang": tgt_lang, "prompt": prompt}
+
+        response = requests.post(
+            external_url,
+            files=files,
+            data=data,
+            headers={"accept": "application/json"},
+            timeout=60
+        )
+        response.raise_for_status()
+
+        response_data = response.json()
+        pages = response_data.get("pages", [])
+        summary = response_data.get("summary", "")
+
+        if not pages or not summary:
+            logger.warning(f"Incomplete response from external API: pages={len(pages)}, summary={'present' if summary else 'missing'}")
+            return DocumentSummaryResponse(pages=[], summary=summary or "No summary provided by the external API")
+
+        # Validate and format response
+        formatted_pages = [
+            DocumentSummaryPage(
+                page_number=page.get("page_number"),
+                page_text=page.get("page_text", "")
+            ) for page in pages
+        ]
+
+        logger.info(f"Document summary completed in {time() - start_time:.2f} seconds, pages extracted: {len(formatted_pages)}, summary length: {len(summary)}")
+        return DocumentSummaryResponse(pages=formatted_pages, summary=summary)
+
+    except requests.Timeout:
+        logger.error("External document summary API timed out")
+        raise HTTPException(status_code=504, detail="External API timeout")
+    except requests.RequestException as e:
+        logger.error(f"External document summary API error: {str(e)}")
+        raise HTTPException(status_code=500, detail=f"External API error: {str(e)}")
+    except ValueError as e:
+        logger.error(f"Invalid JSON response from external API: {str(e)}")
+        raise HTTPException(status_code=500, detail="Invalid response format from external API")
+    
+
+
 if __name__ == "__main__":
     # Ensure EXTERNAL_API_BASE_URL is set
     external_api_base_url = os.getenv("EXTERNAL_API_BASE_URL")

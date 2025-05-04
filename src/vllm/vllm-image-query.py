@@ -11,10 +11,6 @@ import os
 # Get the base URL (IP or domain) from environment variable
 base_url = os.getenv("DWANI_AI_API_BASE_URL")
 
-endpoint = "/v1/chat/completions"
-
-# Construct the full API URL
-VLLM_ENDPOINT = f"{base_url.rstrip('/')}{endpoint}"
 
 # Suppress slow image processor warning (if not already set)
 #os.environ["TRANSFORMERS_NO_ADVISORY_WARNINGS"] = "1"
@@ -40,7 +36,7 @@ def query_vllm(image, prompt, max_tokens=512, temperature=0.7, top_p=0.9):
 
         # Prepare payload
         payload = {
-            "model": "gemma-3-4b-it",
+            "model": "google/gemma-3-4b-it",
             "messages": [
                 {
                     "role": "user",
@@ -60,9 +56,14 @@ def query_vllm(image, prompt, max_tokens=512, temperature=0.7, top_p=0.9):
             "top_p": top_p
         }
 
+
+        endpoint = "/v1/chat/completions"
+
+        # Construct the full API URL
+        url = f"{base_url.rstrip('/')}{endpoint}"
         # Send request to vLLM
         headers = {"Content-Type": "application/json"}
-        response = requests.post(VLLM_ENDPOINT, json=payload, headers=headers)
+        response = requests.post(url, json=payload, headers=headers)
 
         # Check response
         response.raise_for_status()

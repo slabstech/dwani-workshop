@@ -5,17 +5,14 @@ import os
 # Get the base URL (IP or domain) from environment variable
 base_url = os.getenv("DWANI_AI_API_BASE_URL")
 
-# Translation API endpoint
-translation_api_url = "https://slabstech-dhwani-server-workshop.hf.space/v1/translate"
-
 def summarize_pdf(pdf_file, page_number, src_lang, tgt_lang):
-    """Summarize a PDF page and translate the summary."""
+    """Summarize a PDF page and translate the summary using a single API call."""
     if not pdf_file:
         return "Please upload a PDF file."
     if not page_number or page_number < 1:
         return "Please enter a valid page number."
 
-    endpoint = "/summarize-pdf"
+    endpoint = "/v1/indic-summarize-pdf"
 
     # Construct the full API URL
     url = f"{base_url.rstrip('/')}{endpoint}"
@@ -30,10 +27,12 @@ def summarize_pdf(pdf_file, page_number, src_lang, tgt_lang):
             "file": (pdf_file.name, open(pdf_file.name, "rb"), "application/pdf")
         }
         data = {
-            "page_number": str(page_number)
+            "page_number": str(page_number),
+            "src_lang": src_lang,
+            "tgt_lang": tgt_lang
         }
 
-        # Send POST request to summarize PDF
+        # Send POST request to the unified API
         response = requests.post(url, headers=headers, files=files, data=data)
 
         # Check if request was successful
@@ -42,33 +41,15 @@ def summarize_pdf(pdf_file, page_number, src_lang, tgt_lang):
             summary_response = {
                 "Original Text": result.get("original_text", "N/A"),
                 "Summary": result.get("summary", "N/A"),
+                "Translated Summary": result.get("translated_summary", "N/A"),
                 "Processed Page": result.get("processed_page", "N/A")
             }
-
-            # Translate the summary
-            translation_payload = {
-                "sentences": [summary_response["Summary"]],
-                "src_lang": src_lang,
-                "tgt_lang": tgt_lang
-            }
-            translation_response = requests.post(
-                translation_api_url,
-                json=translation_payload,
-                headers={"accept": "application/json", "Content-Type": "application/json"}
-            )
-            translation_response.raise_for_status()
-            translation_result = translation_response.json()
-            translated_summary = translation_result["translations"][0]
-
-            # Add translated summary to the response
-            summary_response["Translated Summary"] = translated_summary
-
             return summary_response
         else:
             return f"Error: {response.status_code} - {response.text}"
 
     except requests.exceptions.RequestException as e:
-        return f"Error querying summarize API or translation API: {str(e)}"
+        return f"Error querying API: {str(e)}"
     except Exception as e:
         return f"Error: {str(e)}"
     finally:
@@ -78,8 +59,8 @@ def summarize_pdf(pdf_file, page_number, src_lang, tgt_lang):
 
 # Define language options (based on the provided example and common use cases)
 language_options = [
-    "kan_Knda",  # Kannada
     "eng_Latn",  # English
+    "kan_Knda",  # Kannada
     "hin_Deva",  # Hindi
     "tam_Taml",  # Tamil
     "tel_Telu",  # Telugu

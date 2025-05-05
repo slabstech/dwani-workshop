@@ -1045,6 +1045,130 @@ async def custom_prompt_pdf(
         raise HTTPException(status_code=500, detail="Invalid response format from external API")
 
 
+class IndicCustomPromptPDFResponse(BaseModel):
+    original_text: str = Field(..., description="Extracted text from the specified page")
+    response: str = Field(..., description="Response based on the custom prompt")
+    translated_response: str = Field(..., description="Translated response in the target language")
+    processed_page: int = Field(..., description="Page number processed")
+
+    class Config:
+        schema_extra = {
+            "example": {
+                "original_text": "Okay, here's a plain text representation of the document...\n\n**Clevertronic. Voll. Venture GmbH**...",
+                "response": "Okay, here’s a list of key points from the document:\n* Company Information: Clevertronic. Voll. Venture GmbH...",
+                "translated_response": "ಸರಿ, ಡಾಕ್ಯುಮೆಂಟ್ನ ಪ್ರಮುಖ ಅಂಶಗಳ ಪಟ್ಟಿ ಹೀಗಿದೆ...\n* ಕಂಪನಿ ಮಾಹಿತಿ: ಕ್ಲೆವರ್ಟ್ರಾನಿಕ್. ಮತಪತ್ರ. ವೆಂಚರ್ ಜಿಎಂಬಿಎಚ್...",
+                "processed_page": 1
+            }
+        }
+
+
+@app.post("/v1/indic-custom-prompt-pdf",
+             response_model=IndicCustomPromptPDFResponse,
+             summary="Process a PDF with a Custom Prompt and Translation",
+             description="Extract text from a specific page of a PDF, process it with a custom prompt, and translate the response into a target language using an external API.",
+             tags=["PDF"],
+             responses={
+                 200: {"description": "Extracted text, custom prompt response, and translated response for the specified page", "model": IndicCustomPromptPDFResponse},
+                 400: {"description": "Invalid PDF, page number, prompt, or language codes"},
+                 500: {"description": "External API error"},
+                 504: {"description": "External API timeout"}
+             })
+async def indic_custom_prompt_pdf(
+    request: Request,
+    file: UploadFile = File(..., description="PDF file to process"),
+    page_number: int = Form(..., description="Page number to process (1-based indexing)"),
+    prompt: str = Form(..., description="Custom prompt to process the page content"),
+    source_language: str = Form(..., description="Source language code (e.g., eng_Latn)"),
+    target_language: str = Form(..., description="Target language code (e.g., kan_Knda)")
+):
+    # Validate file
+    if not file.filename.lower().endswith('.pdf'):
+        raise HTTPException(status_code=400, detail="File must be a PDF")
+
+    # Validate page number
+    if page_number < 1:
+        raise HTTPException(status_code=400, detail="Page number must be at least 1")
+
+    # Validate prompt
+    if not prompt.strip():
+        raise HTTPException(status_code=400, detail="Prompt cannot be empty")
+
+    # Validate language codes (basic check for non-empty)
+    if not source_language.strip() or not target_language.strip():
+        raise HTTPException(status_code=400, detail="Source and target language codes cannot be empty")
+
+    logger.info("Processing indic custom prompt PDF request", extra={
+        "endpoint": "/indic-custom-prompt-pdf",
+        "file_name": file.filename,
+        "page_number": page_number,
+        "prompt": prompt,
+        "source_language": source_language,
+        "target_language": target_language,
+        "client_ip": request.client.host
+    })
+
+    external_url = f"{os.getenv('EXTERNAL_PDF_API_BASE_URL')}/indic-custom-prompt-pdf"
+    start_time = time()
+
+    try:
+        file_content = await file.read()
+        files = {"file": (file.filename, file_content, "application/pdf")}
+        data = {
+            "page_number": page_number,
+            "prompt": prompt,
+            "source_language": source_language,
+            "target_language": target_language
+        }
+
+        response = requests.post(
+            external_url,
+            files=files,
+            data=data,
+            headers={"accept": "application/json"},
+            timeout=60
+        )
+        response.raise_for_status()
+
+        response_data = response.json()
+        original_text = response_data.get("original_text", "")
+        custom_response = response_data.get("response", "")
+        translated_response = response_data.get("translated_response", "")
+        processed_page = response_data.get("processed_page", page_number)
+
+        if not original_text or not custom_response or not translated_response:
+            logger.warning(f"Incomplete response from external API: "
+                          f"original_text={'present' if original_text else 'missing'}, "
+                          f"response={'present' if custom_response else 'missing'}, "
+                          f"translated_response={'present' if translated_response else 'missing'}")
+            return IndicCustomPromptPDFResponse(
+                original_text=original_text or "No text extracted",
+                response=custom_response or "No response provided",
+                translated_response=translated_response or "No translated response provided",
+                processed_page=processed_page
+            )
+
+        logger.info(f"Indic custom prompt PDF processing completed in {time() - start_time:.2f} seconds, "
+                    f"page processed: {processed_page}, response length: {len(custom_response)}, "
+                    f"translated response length: {len(translated_response)}")
+        return IndicCustomPromptPDFResponse(
+            original_text=original_text,
+            response=custom_response,
+            translated_response=translated_response,
+            processed_page=processed_page
+        )
+
+    except requests.Timeout:
+        logger.error("External indic custom prompt PDF API timed out")
+        raise HTTPException(status_code=504, detail="External API timeout")
+    except requests.RequestException as e:
+        logger.error(f"External indic custom prompt PDF API error: {str(e)}")
+        raise HTTPException(status_code=500, detail=f"External API error: {str(e)}")
+    except ValueError as e:
+        logger.error(f"Invalid JSON response from external API: {str(e)}")
+        raise HTTPException(status_code=500, detail="Invalid response format from external API")
+
+
+
 if __name__ == "__main__":
     # Ensure EXTERNAL_API_BASE_URL is set
     external_api_base_url = os.getenv("EXTERNAL_API_BASE_URL")

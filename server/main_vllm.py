@@ -943,7 +943,107 @@ async def indic_summarize_pdf(
     except ValueError as e:
         logger.error(f"Invalid JSON response from external API: {str(e)}")
         raise HTTPException(status_code=500, detail="Invalid response format from external API")
-    
+
+
+class CustomPromptPDFResponse(BaseModel):
+    original_text: str = Field(..., description="Extracted text from the specified page")
+    response: str = Field(..., description="Response based on the custom prompt")
+    processed_page: int = Field(..., description="Page number processed")
+
+    class Config:
+        schema_extra = {
+            "example": {
+                "original_text": "Okay, here's a plain text representation of the document...\n\n**Clevertronic**\nBestellnummer: 801772347...",
+                "response": "Okay, here’s a list of the key points from the document:\n* Company Information: Clevertronic GmbH...",
+                "processed_page": 1
+            }
+        }
+
+
+@app.post("/v1/custom-prompt-pdf",
+             response_model=CustomPromptPDFResponse,
+             summary="Process a PDF with a Custom Prompt",
+             description="Extract text from a specific page of a PDF and process it with a custom prompt using an external API.",
+             tags=["PDF"],
+             responses={
+                 200: {"description": "Extracted text and custom prompt response for the specified page", "model": CustomPromptPDFResponse},
+                 400: {"description": "Invalid PDF, page number, or prompt"},
+                 500: {"description": "External API error"},
+                 504: {"description": "External API timeout"}
+             })
+async def custom_prompt_pdf(
+    request: Request,
+    file: UploadFile = File(..., description="PDF file to process"),
+    page_number: int = Form(..., description="Page number to process (1-based indexing)"),
+    prompt: str = Form(..., description="Custom prompt to process the page content")
+):
+    # Validate file
+    if not file.filename.lower().endswith('.pdf'):
+        raise HTTPException(status_code=400, detail="File must be a PDF")
+
+    # Validate page number
+    if page_number < 1:
+        raise HTTPException(status_code=400, detail="Page number must be at least 1")
+
+    # Validate prompt
+    if not prompt.strip():
+        raise HTTPException(status_code=400, detail="Prompt cannot be empty")
+
+    logger.info("Processing custom prompt PDF request", extra={
+        "endpoint": "/custom-prompt-pdf",
+        "file_name": file.filename,
+        "page_number": page_number,
+        "prompt": prompt,
+        "client_ip": request.client.host
+    })
+
+    external_url = f"{os.getenv('EXTERNAL_PDF_API_BASE_URL')}/custom-prompt-pdf"
+    start_time = time()
+
+    try:
+        file_content = await file.read()
+        files = {"file": (file.filename, file_content, "application/pdf")}
+        data = {"page_number": page_number, "prompt": prompt}
+
+        response = requests.post(
+            external_url,
+            files=files,
+            data=data,
+            headers={"accept": "application/json"},
+            timeout=60
+        )
+        response.raise_for_status()
+
+        response_data = response.json()
+        original_text = response_data.get("original_text", "")
+        custom_response = response_data.get("response", "")
+        processed_page = response_data.get("processed_page", page_number)
+
+        if not original_text or not custom_response:
+            logger.warning(f"Incomplete response from external API: original_text={'present' if original_text else 'missing'}, response={'present' if custom_response else 'missing'}")
+            return CustomPromptPDFResponse(
+                original_text=original_text or "No text extracted",
+                response=custom_response or "No response provided",
+                processed_page=processed_page
+            )
+
+        logger.info(f"Custom prompt PDF processing completed in {time() - start_time:.2f} seconds, page processed: {processed_page}, response length: {len(custom_response)}")
+        return CustomPromptPDFResponse(
+            original_text=original_text,
+            response=custom_response,
+            processed_page=processed_page
+        )
+
+    except requests.Timeout:
+        logger.error("External custom prompt PDF API timed out")
+        raise HTTPException(status_code=504, detail="External API timeout")
+    except requests.RequestException as e:
+        logger.error(f"External custom prompt PDF API error: {str(e)}")
+        raise HTTPException(status_code=500, detail=f"External API error: {str(e)}")
+    except ValueError as e:
+        logger.error(f"Invalid JSON response from external API: {str(e)}")
+        raise HTTPException(status_code=500, detail="Invalid response format from external API")
+
 
 if __name__ == "__main__":
     # Ensure EXTERNAL_API_BASE_URL is set

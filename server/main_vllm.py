@@ -236,7 +236,7 @@ async def generate_audio(
         # Close the temporary file to ensure it's fully written
         temp_file.close()
 
-@app.post("/v1/chat", 
+@app.post("/v1/indic_chat", 
           response_model=ChatResponse,
           summary="Chat with AI",
           description="Generate a chat response from a prompt and language code.",
@@ -258,7 +258,7 @@ async def chat(
     logger.info(f"Received prompt: {chat_request.prompt}, src_lang: {chat_request.src_lang}")
     
     try:
-        external_url = f"{os.getenv('EXTERNAL_API_BASE_URL')}/v1/chat"
+        external_url = f"{os.getenv('EXTERNAL_API_BASE_URL')}/v1/indic_chat"
         payload = {
             "prompt": chat_request.prompt,
             "src_lang": chat_request.src_lang,
@@ -413,7 +413,7 @@ class VisualQueryResponse(BaseModel):
     class Config:
         schema_extra = {"example": {"answer": "The image shows a screenshot of a webpage."}}
 
-@app.post("/v1/visual_query", 
+@app.post("/v1/indic_visual_query", 
           response_model=VisualQueryResponse,
           summary="Visual Query with Image",
           description="Process a visual query with a text query, image, and language codes. Provide the query and image as form data, and source/target languages as query parameters.",
@@ -453,7 +453,7 @@ async def visual_query(
         "tgt_lang": tgt_lang
     })
     
-    external_url = f"{os.getenv('EXTERNAL_API_BASE_URL')}/v1/visual_query/?src_lang={src_lang}&tgt_lang={tgt_lang}"
+    external_url = f"{os.getenv('EXTERNAL_API_BASE_URL')}/v1/indic_visual_query/?src_lang={src_lang}&tgt_lang={tgt_lang}"
     
     try:
         file_content = await file.read()

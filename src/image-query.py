@@ -15,7 +15,7 @@ def visual_query(image, src_lang, tgt_lang, prompt):
         raise ValueError("DWANI_AI_API_BASE_URL environment variable is not set")
 
     # Define the endpoint path
-    endpoint = "/v1/visual_query"
+    endpoint = "/v1/indic_visual_query"
 
     # Construct the full API URL
     url = f"{base_url.rstrip('/')}{endpoint}"

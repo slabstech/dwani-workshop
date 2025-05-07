@@ -1167,6 +1167,116 @@ async def indic_custom_prompt_pdf(
         logger.error(f"Invalid JSON response from external API: {str(e)}")
         raise HTTPException(status_code=500, detail="Invalid response format from external API")
 
+@app.post("/v1/indic-custom-prompt-kannada-pdf",
+          summary="Generate Kannada PDF with Custom Prompt",
+          description="Process a PDF with a custom prompt and generate a new PDF in Kannada using an external API.",
+          tags=["PDF"],
+          responses={
+              200: {"description": "Generated Kannada PDF file", "content": {"application/pdf": {"example": "Binary PDF data"}}},
+              400: {"description": "Invalid PDF, page number, prompt, or language"},
+              500: {"description": "External API error"},
+              504: {"description": "External API timeout"}
+          })
+async def indic_custom_prompt_kannada_pdf(
+    request: Request,
+    file: UploadFile = File(..., description="PDF file to process"),
+    page_number: int = Form(..., description="Page number to process (1-based indexing)"),
+    prompt: str = Form(..., description="Custom prompt to process the page content (e.g., 'list key points')"),
+    src_lang: str = Form(..., description="Source language code (e.g., eng_Latn)"),
+    background_tasks: BackgroundTasks = BackgroundTasks()
+):
+    # Validate file
+    if not file.filename.lower().endswith('.pdf'):
+        raise HTTPException(status_code=400, detail="File must be a PDF")
+
+    # Validate page number
+    if page_number < 1:
+        raise HTTPException(status_code=400, detail="Page number must be at least 1")
+
+    # Validate prompt
+    if not prompt.strip():
+        raise HTTPException(status_code=400, detail="Prompt cannot be empty")
+
+    # Validate source language
+    supported_languages = ["eng_Latn", "hin_Deva", "kan_Knda", "tam_Taml", "mal_Mlym", "tel_Telu"]
+    if src_lang not in supported_languages:
+        raise HTTPException(status_code=400, detail=f"Unsupported source language: {src_lang}. Must be one of {supported_languages}")
+
+    logger.info("Processing Kannada PDF generation request", extra={
+        "endpoint": "/v1/indic-custom-prompt-kannada-pdf",
+        "file_name": file.filename,
+        "page_number": page_number,
+        "prompt": prompt,
+        "src_lang": src_lang,
+        "client_ip": request.client.host
+    })
+
+    external_url = f"{os.getenv('EXTERNAL_PDF_API_BASE_URL')}/indic-custom-prompt-kannada-pdf/"
+    start_time = time()
+
+    # Create a temporary file to store the generated PDF
+    temp_file = tempfile.NamedTemporaryFile(delete=False, suffix=".pdf")
+    temp_file_path = temp_file.name
+
+    try:
+        file_content = await file.read()
+        files = {"file": (file.filename, file_content, "application/pdf")}
+        data = {
+            "page_number": page_number,
+            "prompt": prompt,
+            "src_lang": src_lang
+        }
+
+        response = requests.post(
+            external_url,
+            files=files,
+            data=data,
+            headers={"accept": "application/json"},
+            stream=True,
+            timeout=60
+        )
+        response.raise_for_status()
+
+        # Write the PDF content to the temporary file
+        with open(temp_file_path, "wb") as f:
+            for chunk in response.iter_content(chunk_size=8192):
+                if chunk:
+                    f.write(chunk)
+
+        # Prepare headers for the response
+        headers = {
+            "Content-Disposition": "attachment; filename=\"generated_kannada.pdf\"",
+            "Cache-Control": "no-cache",
+        }
+
+        # Schedule file cleanup as a background task
+        def cleanup_file(file_path: str):
+            try:
+                if os.path.exists(file_path):
+                    os.unlink(file_path)
+                    logger.info(f"Deleted temporary file: {file_path}")
+            except Exception as e:
+                logger.error(f"Failed to delete temporary file {file_path}: {str(e)}")
+
+        background_tasks.add_task(cleanup_file, temp_file_path)
+
+        logger.info(f"Kannada PDF generation completed in {time() - start_time:.2f} seconds")
+        return FileResponse(
+            path=temp_file_path,
+            filename="generated_kannada.pdf",
+            media_type="application/pdf",
+            headers=headers
+        )
+
+    except requests.Timeout:
+        logger.error("External Kannada PDF API timed out")
+        raise HTTPException(status_code=504, detail="External API timeout")
+    except requests.RequestException as e:
+        logger.error(f"External Kannada PDF API error: {str(e)}")
+        raise HTTPException(status_code=500, detail=f"External API error: {str(e)}")
+    finally:
+        # Close the temporary file to ensure it's fully written
+        temp_file.close()
 
 
 if __name__ == "__main__":

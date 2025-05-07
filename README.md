@@ -4,6 +4,7 @@
 
 dwani.ai is a self-hosted GenAI platform designed to provide voice mode interaction for Kannada and other Indian languages. 
 
+[dwani.ai - Workshop Slides](https://tinyurl.com/dwani-ai-workshop)
 
 ## Workshop steps
 
@@ -33,67 +34,17 @@ dwani.ai is a self-hosted GenAI platform designed to provide voice mode interact
   - Please email us to get the IP for dwani.ai - workshop inference server
 
 
-nohup python src/server/main.py --port 7860 > server.log 2>&1 &
+# dwani.ai Features and Commands
 
-
-### dwani.ai - Voice assistant
-```bash
-python src/dwani-voice-assistant.py
-```
-
-[dwani.ai - voice assistant](https://huggingface.co/spaces/slabstech/text-to-speech-synthesis)
-
-
-
-### Chat / Text Answer
-```bash
-python src/chat-dhwani.py
-```
-[Chat UX ](https://huggingface.co/spaces/slabstech/dwani-ai-chat)
-
-### Image Query
-```bash
-python src/image-query.py
-```
-[Image Query UX ](https://huggingface.co/spaces/slabstech/dwani-ai-image-query)
-
-
-### PDF Chat
-```bash
-python src/pdf-chat-dhwani.py
-```
-[PDF Chat UX ](https://huggingface.co/spaces/slabstech/dwani-ai-pdf-chat)
-
-
-### Text to Speech
-```bash
-python src/text-to-speech-dhwani.py
-```
-
-[Text to Speech UX](https://huggingface.co/spaces/slabstech/text-to-speech-synthesis)
-
-
-### Translate
-```bash
-python src/translate-dhwani.py
-```
-
-[Translate UX](https://huggingface.co/spaces/slabstech/dwani-ai-translate)
-
-### Speech to Text / ASR
-```bash
-python src/transcribe-dhwani.py
-```
-
-[ASR/ Speech to Text UX](https://huggingface.co/spaces/slabstech/asr-transcription)
-
-### Text to Speech
-```bash
-python src/text-to-speech-dhwani.py
-```
-
-[Text to Speech UX](https://huggingface.co/spaces/slabstech/text-to-speech-synthesis)
-
+| Feature                  | Command                                      | Web UX Link                                                                 | Server  |
+|--------------------------|----------------------------------------------|----------------------------------------------|-----------------------------------------------------------------------------|
+| Voice Assistant          | `python src/dwani-voice-assistant.py`        | [Voice Assistant](https://huggingface.co/spaces/slabstech/text-to-speech-synthesis) | [https://github.com/slabstech/dhwani-server](https://github.com/slabstech/dhwani-server)|
+| Chat / Text Answer       | `python src/chat-dhwani.py`                  | [Chat UX](https://huggingface.co/spaces/slabstech/dwani-ai-chat)            |[https://github.com/slabstech/llm-indic-server](https://github.com/slabstech/llm-indic-server)|
+| Image Query              | `python src/image-query.py`                  | [Image Query UX](https://huggingface.co/spaces/slabstech/dwani-ai-image-query) | [https://github.com/slabstech/llm-indic-server](https://github.com/slabstech/llm-indic-server)|
+| PDF Chat                 | `python src/pdf-chat-dhwani.py`              | [PDF Chat UX](https://huggingface.co/spaces/slabstech/dwani-ai-pdf-chat)    |[https://github.com/slabstech/docs-indic-server](https://github.com/slabstech/docs-indic-server)|
+| Text to Speech           | `python src/text-to-speech-dhwani.py`        | [Text to Speech UX](https://huggingface.co/spaces/slabstech/text-to-speech-synthesis) | [https://github.com/slabstech/tts-indic-server](https://github.com/slabstech/tts-indic-server)|
+| Translate                | `python src/translate-dhwani.py`             | [Translate UX](https://huggingface.co/spaces/slabstech/dwani-ai-translate)  |[https://github.com/slabstech/indic-translate-server](https://github.com/slabstech/indic-translate-server)|
+| Speech to Text / ASR     | `python src/transcribe-dhwani.py`            | [ASR/ Speech to Text UX](https://huggingface.co/spaces/slabstech/asr-transcription) |[https://github.com/slabstech/asr-indic-server](https://github.com/slabstech/asr-indic-server)|
 
 
 ## Video Tutorials
@@ -128,3 +79,8 @@ The project utilizes the following open-source tools:
 |----------|-----------------------------------------------|---------------------------------------------|
 | ![Answer Engine](docs/kannada-answer-engine.drawio.png "Engine") | ![Answer Engine Translation](docs/kannada-answer-engine-translate.png "Engine") | ![Voice Translation](docs/voice-translation.drawio.png "Voice Translation") |
 
+<!-- 
+
+nohup python src/server/main.py --port 7860 > server.log 2>&1 &
+
+-->

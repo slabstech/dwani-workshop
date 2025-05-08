@@ -12,7 +12,7 @@ def chat_api(prompt, language, tgt_language):
         raise ValueError("DWANI_AI_API_BASE_URL environment variable is not set")
 
     # Define the endpoint path
-    endpoint = "/v1/chat"
+    endpoint = "/v1/indic_chat"
 
         # Construct the full API URL
     url = f"{base_url.rstrip('/')}{endpoint}"

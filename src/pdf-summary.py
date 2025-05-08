@@ -7,6 +7,9 @@ import os
 def is_valid_pdf(file_path):
     try:
         if isinstance(file_path, str) and os.path.exists(file_path):
+            file_size = os.path.getsize(file_path) / (1024 * 1024)  # Size in MB
+            if file_size > 50:  # Limit to 50 MB
+                return False, "PDF file is too large (max 50 MB)"
             with open(file_path, "rb") as f:
                 pdf = PdfReader(f)
                 if len(pdf.pages) > 0:
@@ -26,21 +29,17 @@ def extract_text_from_pdf(pdf_file, src_lang, tgt_lang, prompt):
     valid, message = is_valid_pdf(pdf_file)
     if not valid:
         return f"Error: {message}. Please upload a valid PDF file or repair the current one.", ""
-    
-    import os
 
-    # Get the base URL (IP or domain) from environment variable
+    # Get the base URL from environment variable
     base_url = os.getenv("DWANI_AI_API_BASE_URL")
-
     if not base_url:
-        raise ValueError("DWANI_AI_API_BASE_URL environment variable is not set")
+        return "Error: DWANI_AI_API_BASE_URL environment variable is not set", ""
 
     # Define the endpoint path
-    endpoint = "/v1/document_summary"
+    endpoint = "/v1/document_summary_v0"
 
     # Construct the full API URL
     url = f"{base_url.rstrip('/')}{endpoint}"
-    # Define the API endpoint
 
     # Prepare the payload
     with open(pdf_file, "rb") as f:
@@ -59,8 +58,8 @@ def extract_text_from_pdf(pdf_file, src_lang, tgt_lang, prompt):
         }
 
         try:
-            # Send the POST request
-            response = requests.post(url, files=files, data=data, headers=headers)
+            # Send the POST request with increased timeout (120 seconds)
+            response = requests.post(url, files=files, data=data, headers=headers, timeout=120)
             
             # Check if the request was successful
             if response.status_code == 200:
@@ -78,6 +77,8 @@ def extract_text_from_pdf(pdf_file, src_lang, tgt_lang, prompt):
                 return summary, page_text
             else:
                 return f"Error: {response.status_code} - {response.text}", ""
+        except requests.Timeout:
+            return "Error: API request timed out. Please try again or check the API server.", ""
         except Exception as e:
             return f"Error: Failed to connect to the API - {str(e)}", ""
 
@@ -132,4 +133,5 @@ with gr.Blocks(title="PDF Content Description") as demo:
     )
 
 # Launch the Gradio app
-demo.launch()
+if __name__ == "__main__":
+    demo.launch(server_name="0.0.0.0", server_port=7860, debug=True)

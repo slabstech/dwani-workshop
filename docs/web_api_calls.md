@@ -3,7 +3,7 @@ Text Chat
 - English to English
 
 curl -X 'POST' \
-  'https://slabstech-dhwani-server-workshop.hf.space/v1/chat' \
+  'https://dwani-dwani-server-workshop.hf.space/v1/chat' \
   -H 'accept: application/json' \
   -H 'Content-Type: application/json' \
   -d '{
@@ -20,7 +20,7 @@ curl -X 'POST' \
 - Kannada to Kannada
 
 curl -X 'POST' \
-  'https://slabstech-dhwani-server-workshop.hf.space/v1/chat' \
+  'https://dwani-dwani-server-workshop.hf.space/v1/chat' \
   -H 'accept: application/json' \
   -H 'Content-Type: application/json' \
   -d '{
@@ -36,7 +36,7 @@ curl -X 'POST' \
 Kannada to English
 
 curl -X 'POST' \
-  'https://slabstech-dhwani-server-workshop.hf.space/v1/chat' \
+  'https://dwani-dwani-server-workshop.hf.space/v1/chat' \
   -H 'accept: application/json' \
   -H 'Content-Type: application/json' \
   -d '{
@@ -53,7 +53,7 @@ curl -X 'POST' \
 English to Kannada
 
 curl -X 'POST' \
-  'https://slabstech-dhwani-server-workshop.hf.space/v1/chat' \
+  'https://dwani-dwani-server-workshop.hf.space/v1/chat' \
   -H 'accept: application/json' \
   -H 'Content-Type: application/json' \
   -d '{
@@ -71,7 +71,7 @@ curl -X 'POST' \
 
 -- Transcribe  / Automatic Speech Recognition
 curl -X 'POST' \
-  'https://slabstech-dhwani-server-workshop.hf.space/v1/transcribe/?language=kannada' \
+  'https://dwani-dwani-server-workshop.hf.space/v1/transcribe/?language=kannada' \
   -H 'accept: application/json' \
   -H 'Content-Type: multipart/form-data' \
   -F 'file=@kannada_sample_1.wav;type=audio/x-wav'
@@ -85,7 +85,7 @@ curl -X 'POST' \
 - Speech to Speech
 
 curl -X 'POST' \
-  'https://slabstech-dhwani-server-workshop.hf.space/v1/speech_to_speech?language=kannada' \
+  'https://dwani-dwani-server-workshop.hf.space/v1/speech_to_speech?language=kannada' \
   -H 'accept: application/json' \
   -H 'Content-Type: multipart/form-data' \
   -F 'file=@kannada_sample_1.wav;type=audio/x-wav' -o speech_speech_output.wav
@@ -96,7 +96,7 @@ curl -X 'POST' \
 
 
 curl -X 'POST' \
-  'https://slabstech-dhwani-server-workshop.hf.space/v1/audio/speech' \
+  'https://dwani-dwani-server-workshop.hf.space/v1/audio/speech' \
   -H 'accept: */*' \
   -H 'Content-Type: application/json' \
   -d '{
@@ -107,7 +107,7 @@ curl -X 'POST' \
 Visual Query
 
 curl -X 'POST' \
-  'https://slabstech-dhwani-server-workshop.hf.space/v1/visual_query?src_lang=eng_Latn&tgt_lang=kan_Knda' \
+  'https://dwani-dwani-server-workshop.hf.space/v1/visual_query?src_lang=eng_Latn&tgt_lang=kan_Knda' \
   -H 'accept: application/json' \
   -H 'Content-Type: multipart/form-data' \
   -F 'query=describe the image' \

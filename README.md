@@ -38,13 +38,15 @@ dwani.ai is a self-hosted GenAI platform designed to provide voice mode interact
 
 | Feature                  | Command                                      | Web UX Link                                                                 | Server  |
 |--------------------------|----------------------------------------------|----------------------------------------------|-----------------------------------------------------------------------------|
-| Voice Assistant          | `python src/dwani-voice-assistant.py`        | [Voice Assistant](https://huggingface.co/spaces/slabstech/text-to-speech-synthesis) | [https://github.com/slabstech/dwani-server](https://github.com/slabstech/dwani-server)|
+| Voice Assistant          | `python src/dwani-voice-assistant.py`        | [Voice Assistant](https://huggingface.co/spaces/slabstech/dwani-voice-assistant) | [https://github.com/slabstech/dwani-server](https://github.com/slabstech/dwani-server)|
 | Chat / Text Answer       | `python src/chat-dwani.py`                  | [Chat UX](https://huggingface.co/spaces/slabstech/dwani-ai-chat)            |[https://github.com/slabstech/llm-indic-server](https://github.com/slabstech/llm-indic-server)|
 | Image Query              | `python src/image-query.py`                  | [Image Query UX](https://huggingface.co/spaces/slabstech/dwani-ai-image-query) | [https://github.com/slabstech/llm-indic-server](https://github.com/slabstech/llm-indic-server)|
 | PDF Chat                 | `python src/pdf-chat-dwani.py`              | [PDF Chat UX](https://huggingface.co/spaces/slabstech/dwani-ai-pdf-chat)    |[https://github.com/slabstech/docs-indic-server](https://github.com/slabstech/docs-indic-server)|
+| Kannada -  PDF Extraction,Translation and Creation | `python src/vllm/kannada-pdf.py`              | [kannada PDF ](https://huggingface.co/spaces/slabstech/kannada-pdf-prompt)    |[https://github.com/slabstech/docs-indic-server](https://github.com/slabstech/docs-indic-server)|
 | Text to Speech           | `python src/text-to-speech-dwani.py`        | [Text to Speech UX](https://huggingface.co/spaces/slabstech/text-to-speech-synthesis) | [https://github.com/slabstech/tts-indic-server](https://github.com/slabstech/tts-indic-server)|
 | Translate                | `python src/translate-dwani.py`             | [Translate UX](https://huggingface.co/spaces/slabstech/dwani-ai-translate)  |[https://github.com/slabstech/indic-translate-server](https://github.com/slabstech/indic-translate-server)|
 | Speech to Text / ASR     | `python src/transcribe-dwani.py`            | [ASR/ Speech to Text UX](https://huggingface.co/spaces/slabstech/asr-transcription) |[https://github.com/slabstech/asr-indic-server](https://github.com/slabstech/asr-indic-server)|
+
 
 
 ## Video Tutorials

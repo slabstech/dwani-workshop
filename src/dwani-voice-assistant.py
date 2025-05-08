@@ -102,7 +102,7 @@ def process_audio(audio, language):
         api_start = time.time()
         with open(converted_audio, "rb") as audio_file:
             files = {"file": (f"{language.lower()}_sample.wav", audio_file, "audio/x-wav")}
-            response = requests.post(url, headers=headers, files=files, timeout=10)
+            response = requests.post(url, headers=headers, files=files, timeout=60)
         api_time = time.time() - api_start
         METRICS["total_api_time"] += api_time
         logger.info(f"API response took {api_time:.2f}s, Language={language}")

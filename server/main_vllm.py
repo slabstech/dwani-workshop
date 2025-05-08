@@ -16,7 +16,7 @@ from config.logging_config import logger
 
 # FastAPI app setup with enhanced docs
 app = FastAPI(
-    title="Dhwani API",
+    title="dwani API",
     description="A multilingual AI-powered API supporting Indian languages for chat, text-to-speech, audio processing, and transcription.",
     version="1.0.0",
     redirect_slashes=False,

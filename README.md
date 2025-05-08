@@ -38,23 +38,23 @@ dwani.ai is a self-hosted GenAI platform designed to provide voice mode interact
 
 | Feature                  | Command                                      | Web UX Link                                                                 | Server  |
 |--------------------------|----------------------------------------------|----------------------------------------------|-----------------------------------------------------------------------------|
-| Voice Assistant          | `python src/dwani-voice-assistant.py`        | [Voice Assistant](https://huggingface.co/spaces/slabstech/text-to-speech-synthesis) | [https://github.com/slabstech/dhwani-server](https://github.com/slabstech/dhwani-server)|
-| Chat / Text Answer       | `python src/chat-dhwani.py`                  | [Chat UX](https://huggingface.co/spaces/slabstech/dwani-ai-chat)            |[https://github.com/slabstech/llm-indic-server](https://github.com/slabstech/llm-indic-server)|
+| Voice Assistant          | `python src/dwani-voice-assistant.py`        | [Voice Assistant](https://huggingface.co/spaces/slabstech/text-to-speech-synthesis) | [https://github.com/slabstech/dwani-server](https://github.com/slabstech/dwani-server)|
+| Chat / Text Answer       | `python src/chat-dwani.py`                  | [Chat UX](https://huggingface.co/spaces/slabstech/dwani-ai-chat)            |[https://github.com/slabstech/llm-indic-server](https://github.com/slabstech/llm-indic-server)|
 | Image Query              | `python src/image-query.py`                  | [Image Query UX](https://huggingface.co/spaces/slabstech/dwani-ai-image-query) | [https://github.com/slabstech/llm-indic-server](https://github.com/slabstech/llm-indic-server)|
-| PDF Chat                 | `python src/pdf-chat-dhwani.py`              | [PDF Chat UX](https://huggingface.co/spaces/slabstech/dwani-ai-pdf-chat)    |[https://github.com/slabstech/docs-indic-server](https://github.com/slabstech/docs-indic-server)|
-| Text to Speech           | `python src/text-to-speech-dhwani.py`        | [Text to Speech UX](https://huggingface.co/spaces/slabstech/text-to-speech-synthesis) | [https://github.com/slabstech/tts-indic-server](https://github.com/slabstech/tts-indic-server)|
-| Translate                | `python src/translate-dhwani.py`             | [Translate UX](https://huggingface.co/spaces/slabstech/dwani-ai-translate)  |[https://github.com/slabstech/indic-translate-server](https://github.com/slabstech/indic-translate-server)|
-| Speech to Text / ASR     | `python src/transcribe-dhwani.py`            | [ASR/ Speech to Text UX](https://huggingface.co/spaces/slabstech/asr-transcription) |[https://github.com/slabstech/asr-indic-server](https://github.com/slabstech/asr-indic-server)|
+| PDF Chat                 | `python src/pdf-chat-dwani.py`              | [PDF Chat UX](https://huggingface.co/spaces/slabstech/dwani-ai-pdf-chat)    |[https://github.com/slabstech/docs-indic-server](https://github.com/slabstech/docs-indic-server)|
+| Text to Speech           | `python src/text-to-speech-dwani.py`        | [Text to Speech UX](https://huggingface.co/spaces/slabstech/text-to-speech-synthesis) | [https://github.com/slabstech/tts-indic-server](https://github.com/slabstech/tts-indic-server)|
+| Translate                | `python src/translate-dwani.py`             | [Translate UX](https://huggingface.co/spaces/slabstech/dwani-ai-translate)  |[https://github.com/slabstech/indic-translate-server](https://github.com/slabstech/indic-translate-server)|
+| Speech to Text / ASR     | `python src/transcribe-dwani.py`            | [ASR/ Speech to Text UX](https://huggingface.co/spaces/slabstech/asr-transcription) |[https://github.com/slabstech/asr-indic-server](https://github.com/slabstech/asr-indic-server)|
 
 
 ## Video Tutorials
 
 
-- Dhwani - How to use - Dhwani AI - Workshop:  20th March, 2025
+- dwani - How to use - dwani AI - Workshop:  20th March, 2025
 [![Watch the video](https://img.youtube.com/vi/RLIhG1bt8gw/hqdefault.jpg)](https://youtu.be/f5JkJLQJFGA)
 
 
-- Dhwani - Intoduction to Project
+- dwani - Intoduction to Project
 [![Watch the video](https://img.youtube.com/vi/kqZZZjbeNVk/hqdefault.jpg)](https://youtu.be/kqZZZjbeNVk)
 
 
@@ -68,8 +68,8 @@ The project utilizes the following open-source tools:
 | Text to Speech : TTS                  | [TTS Indic Server](https://github.com/slabstech/tts-indic-server)  | 
 | Translation                           | [Indic Translate Server](https://github.com/slabstech/indic-translate-server) | 
 | Document Parser                       | [Indic Document Server](https://github.com/slabstech/docs-indic-server) |
-| Dhwani Server | [Dhwani Server](https://github.com/slabstech/dhwani-server) | 
-| Dhwani Android | [Android](https://github.com/slabstech/dhwani-android) |
+| dwani Server | [dwani Server](https://github.com/slabstech/dwani-server) | 
+| dwani Android | [Android](https://github.com/slabstech/dwani-android) |
 | Large Language Model                  | [LLM Indic Server](https://github.com/slabstech/llm-indic-server_cpu) | 
 
 

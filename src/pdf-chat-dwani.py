@@ -78,7 +78,7 @@ with gr.Blocks(title="PDF Content Description") as demo:
     gr.Markdown("# PDF Content Description Extractor")
     gr.Markdown(
         """
-        Upload a PDF file (e.g., Dhwani-AI-Pitch-Europe.pdf) and specify parameters to extract a description of its content.
+        Upload a PDF file (e.g., dwani-AI-Pitch-Europe.pdf) and specify parameters to extract a description of its content.
         The API will analyze the page and return a textual description based on the provided prompt and languages.
         """
     )

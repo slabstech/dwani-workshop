@@ -18,7 +18,7 @@ logging_config = {
         "file": {
             "class": "logging.handlers.RotatingFileHandler",
             "formatter": "simple",
-            "filename": "dhwani_api.log",
+            "filename": "dwani_api.log",
             "maxBytes": 10 * 1024 * 1024,  # 10MB
             "backupCount": 5,
         },
@@ -32,4 +32,4 @@ logging_config = {
 }
 
 logging.config.dictConfig(logging_config)
-logger = logging.getLogger("indic_all_server")
+logger = logging.getLogger("dwani_indic_all_server")

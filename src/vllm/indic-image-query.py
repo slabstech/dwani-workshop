@@ -9,7 +9,7 @@ import os
 base_url = os.getenv("DWANI_AI_API_BASE_URL")
 
 # Translation API endpoint
-translation_api_url = "https://slabstech-dhwani-server-workshop.hf.space/v1/translate"
+translation_api_url = "https://dwani-dwani-server-workshop.hf.space/v1/translate"
 
 def image_to_base64(image):
     """Convert a PIL Image to base64 string."""

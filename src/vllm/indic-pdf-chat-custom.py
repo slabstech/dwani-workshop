@@ -6,7 +6,7 @@ import os
 base_url = os.getenv("DWANI_AI_API_BASE_URL")
 
 # Translation API endpoint
-translation_api_url = "https://slabstech-dhwani-server-workshop.hf.space/v1/translate"
+translation_api_url = "https://dwani-dwani-server-workshop.hf.space/v1/translate"
 
 def process_pdf(pdf_file, page_number, prompt, src_lang, tgt_lang):
     """Process a PDF page with a custom prompt and translate the response."""

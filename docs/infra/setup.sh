@@ -1,4 +1,4 @@
-#bin/bash
+#!bin/bash
 
 mkdir dwani_workshop_infra
 
@@ -17,27 +17,35 @@ python3.10 -m venv venv
 source venv/bin/actiave
 pip install -r requirements.txt
 
+deactivate
+
 cd indic-translate-server
 python3.10 -m venv venv
 source venv/bin/actiave
 pip install -r requirements.txt
 
+deactivate
 
 cd asr-indic-server
 python3.10 -m venv venv
 source venv/bin/actiave
 pip install -r requirements.txt
 
+deactivate
 
 cd tts-indic-server
 python3.10 -m venv venv
 source venv/bin/actiave
 pip install -r requirements.txt
 
+deactivate
+
 cd docs-indic-server
 python3.10 -m venv venv
 source venv/bin/actiave
 pip install -r requirements.txt
+
+deactivate
 
 cd dwani-server
 python3.10 -m venv venv

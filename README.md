@@ -6,6 +6,21 @@ dwani.ai is a self-hosted GenAI platform designed to provide voice mode interact
 
 [dwani.ai - Workshop Slides](https://tinyurl.com/dwani-ai-workshop)
 
+```bash
+pip install dwani
+```
+
+```python
+import dwani
+import os
+
+dwani.api_key = os.getenv("DWANI_API_KEY")
+
+dwani.api_base = os.getenv("DWANI_API_BASE")
+
+resp = dwani.Chat.create("Hello!", "eng_Latn", "kan_Knda")
+print(resp)
+```
 ## Workshop steps
 
 ### For Development 

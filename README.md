@@ -16,7 +16,7 @@ import os
 
 dwani.api_key = os.getenv("DWANI_API_KEY")
 
-dwani.api_base = os.getenv("DWANI_API_BASE")
+dwani.api_base = os.getenv("DWANI_API_BASE_URL")
 
 resp = dwani.Chat.create("Hello!", "eng_Latn", "kan_Knda")
 print(resp)
